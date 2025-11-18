@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.env
+.venv/
+env.bak/
+venv.bak/
+
+# IDE and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.spyderproject
+.spyproject
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
+[Tt]humbs.db
+desktop.ini
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# ML Artifacts (excluding specific files)
+*.h5
+*.tflite
+*.pth
+*.pt
+*.onnx
+*.pb
+
+# Dataset
+dataset/
+Fingernails/
+
+# Logs
+logs/
+*.log
+wandb/
+
+# Exceptions (Do not ignore)
+!results/*.png
+!images/*.png
+!weights/.gitkeep
