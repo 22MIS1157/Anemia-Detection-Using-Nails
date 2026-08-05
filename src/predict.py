@@ -76,7 +76,7 @@ def generate_gradcam(model, input_tensor, target_layer, save_path: str):
     handle_fwd.remove()
     handle_bwd.remove()
 
-    print(f"  📸 Grad-CAM heatmap visualization saved to: {save_path}")
+    print(f"  Grad-CAM heatmap visualization saved to: {save_path}")
 
 
 def main():
@@ -95,7 +95,7 @@ def main():
     args = parser.parse_args()
 
     if not os.path.exists(args.image_path):
-        print(f"❌ Error: Image not found at {args.image_path}")
+        print(f"Error: Image not found at {args.image_path}")
         return
 
     # --- Load Model ---
@@ -129,7 +129,7 @@ def main():
     confidence = float(probs[0, pred_idx].item() * 100)
 
     print("\n" + "="*50)
-    print("  🩸 ANEMIA PREDICTION RESULT")
+    print("  ANEMIA PREDICTION RESULT")
     print("="*50)
     print(f"  Target Image:  {args.image_path}")
     print(f"  Prediction:    {class_names[pred_idx]}")
