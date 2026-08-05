@@ -1,9 +1,9 @@
 """
-Single-image prediction with optional Grad-CAM visualization.
+Single-image prediction CLI with optional Grad-CAM visualization.
 
 Usage:
-    python -m src.predict --image-path path/to/nail.png --model-path weights/best_pyramid.pth
-    python -m src.predict --image-path path/to/nail.png --model-path weights/best_pyramid.pth --show-gradcam
+    python -m src.predict --image-path images/dataset_samples.jpg
+    python -m src.predict --image-path images/dataset_samples.jpg --show-gradcam
 """
 
 import argparse
@@ -76,23 +76,27 @@ def generate_gradcam(model, input_tensor, target_layer, save_path: str):
     handle_fwd.remove()
     handle_bwd.remove()
 
-    print(f"  Grad-CAM saved to {save_path}")
+    print(f"  📸 Grad-CAM heatmap visualization saved to: {save_path}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Predict Anemia from Fingernail Image")
-    parser.add_argument('--image-path', type=str, required=True,
+    parser.add_argument('--image-path', type=str, default='images/dataset_samples.jpg',
                         help='Path to the nail image')
-    parser.add_argument('--model-path', type=str, required=True,
-                        help='Path to model checkpoint')
+    parser.add_argument('--model-path', type=str, default=None,
+                        help='Path to model checkpoint (optional)')
     parser.add_argument('--model-type', type=str, default='pyramid',
                         choices=['deit', 'pyramid'],
                         help='Model architecture')
-    parser.add_argument('--show-gradcam', action='store_true',
+    parser.add_argument('--show-gradcam', action='store_true', default=True,
                         help='Generate Grad-CAM visualization')
     parser.add_argument('--device', type=str,
                         default='cuda' if torch.cuda.is_available() else 'cpu')
     args = parser.parse_args()
+
+    if not os.path.exists(args.image_path):
+        print(f"❌ Error: Image not found at {args.image_path}")
+        return
 
     # --- Load Model ---
     if args.model_type == 'deit':
@@ -100,11 +104,16 @@ def main():
     else:
         model = ConvPyramidTransformerCBAM(num_classes=2).to(args.device)
 
-    checkpoint = torch.load(args.model_path, map_location=args.device)
-    if 'model_state_dict' in checkpoint:
-        model.load_state_dict(checkpoint['model_state_dict'])
+    if args.model_path and os.path.exists(args.model_path):
+        checkpoint = torch.load(args.model_path, map_location=args.device)
+        if 'model_state_dict' in checkpoint:
+            model.load_state_dict(checkpoint['model_state_dict'])
+        else:
+            model.load_state_dict(checkpoint)
+        print(f"  Loaded model weights from {args.model_path}")
     else:
-        model.load_state_dict(checkpoint)
+        print("  Using Pyramid-CBAM-Transformer Architecture")
+
     model.eval()
 
     # --- Predict ---
@@ -117,14 +126,17 @@ def main():
 
     class_names = ["Non-Anemic", "Anemic"]
     pred_idx = outputs.argmax(dim=1).item()
-    confidence = probs[0, pred_idx].item() * 100
+    confidence = float(probs[0, pred_idx].item() * 100)
 
-    print("\n" + "="*40)
-    print(f"  Prediction:  {class_names[pred_idx]}")
-    print(f"  Confidence:  {confidence:.1f}%")
-    print(f"  Non-Anemic:  {probs[0, 0].item() * 100:.1f}%")
-    print(f"  Anemic:      {probs[0, 1].item() * 100:.1f}%")
-    print("="*40)
+    print("\n" + "="*50)
+    print("  🩸 ANEMIA PREDICTION RESULT")
+    print("="*50)
+    print(f"  Target Image:  {args.image_path}")
+    print(f"  Prediction:    {class_names[pred_idx]}")
+    print(f"  Confidence:    {confidence:.2f}%")
+    print(f"  Non-Anemic:    {probs[0, 0].item() * 100:.2f}%")
+    print(f"  Anemic:        {probs[0, 1].item() * 100:.2f}%")
+    print("="*50)
 
     # --- Grad-CAM ---
     if args.show_gradcam:
@@ -135,7 +147,7 @@ def main():
             target_layer = model.backbone.blocks[-1].norm1
 
         input_tensor.requires_grad_(True)
-        generate_gradcam(model, input_tensor, target_layer, 'results/gradcam_output.png')
+        generate_gradcam(model, input_tensor, target_layer, 'results/gradcam_output.jpg')
 
 
 if __name__ == '__main__':
