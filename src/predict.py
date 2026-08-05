@@ -65,7 +65,7 @@ def generate_gradcam(model, input_tensor, target_layer, save_path: str):
     heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
 
     # Overlay on original image
-    img = input_tensor.squeeze().permute(1, 2, 0).cpu().numpy()
+    img = input_tensor.detach().squeeze().permute(1, 2, 0).cpu().numpy()
     img = (img * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])) * 255
     img = np.clip(img, 0, 255).astype(np.uint8)
     img = cv2.resize(img, (224, 224))
